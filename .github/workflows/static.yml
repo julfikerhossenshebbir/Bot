@@ -1,0 +1,50 @@
+name: Run Telegram Bot
+
+on:
+  push:
+    branches:
+      - main  # আপনার প্রধান ব্রাঞ্চের নাম লিখুন
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'  # আপনার পছন্দের Python ভার্সন লিখুন
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install aiogram sqlite3 python-dotenv
+
+    - name: Run bot
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        ADMIN_IDS: ${{ secrets.ADMIN_IDS }}
+      run: |
+        python main.py
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload entire repository
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
